@@ -1,0 +1,174 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h3 class="display-6">VAULTEX TECHNICAL TEST </h3>
+</div>
+<div class="card">
+    <div class="card-header">
+      <div class="header-title"></div>
+        <div class="card-actions">
+            <button class="btn btn-secondary uploadBtn">Upload File</button>
+            <input style="position:absolute;right:-99999px" type="file" id="excelfile" />
+            <p id="uploadmsg" class="d-none"></p>
+        </div>
+    </div>
+    <div class="card-body">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="employee-tab" data-toggle="tab" href="#employee" role="tab">Employees</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="org-tab" data-toggle="tab" href="#orgs" role="tab">Organisation</a>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="employee">
+                <table width="100%" id="employeeTable" class="table table-bordered">
+                    <thead>
+                        <tr class="fw-bolder fs-6 text-gray-800">
+                            <th>Org Number</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="orgs">
+                <table width="100%" id="orgsTable" class="table table-bordered">
+                    <thead>
+                        <tr class="fw-bolder fs-6 text-gray-800">
+                            <th>Org Number</th>
+                            <th>Name</th>
+                            <th>Address 1</th>
+                            <th>Address 2</th>
+                            <th>Address 3</th>
+                            <th>Address 4</th>
+                            <th>Town</th>
+                            <th>Post Code</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+           
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+@section Scripts{
+
+    <script>
+
+        $(document).ready(function () {
+
+            $("a.nav-link").click(function(e){
+                e.preventDefault();
+                $("a.nav-link").removeClass("active");
+                $(this).addClass("active");
+                $(".tab-pane").removeClass("active show");
+                $($(this).attr("href")).addClass("active show");
+
+            });
+
+          
+
+            var employeeTable = $("#employeeTable").DataTable({
+                "processing": true, // for show progress bar
+                "serverSide": true, // for process server side
+                "filter": true, // this is for disable filter (search box)
+                "orderMulti": false, // for disable multiple column at once
+                "ajax": {
+                    "url": '@Url.Action("ListAllEmployee", "home", new { area = "" })',
+                    "type": "POST",
+                    "datatype": "json",
+                    "headers": {
+                        //"X-XSRF-TOKEN": $("#_xsrfToken").val()
+                    }
+                },
+
+                "columns": [
+                    { "data": "orgNumber", "name": "schoolClass" },
+                    { "data": "firstName", "name": "firstName" },
+                    { "data": "lastName", "name": "lastName" }
+                ]
+            });
+
+            var orgsTable = $("#orgsTable").DataTable({
+                "processing": true, // for show progress bar
+                "serverSide": true, // for process server side
+                "filter": true, // this is for disable filter (search box)
+                "orderMulti": false, // for disable multiple column at once
+                "ajax": {
+                    "url": '@Url.Action("ListAllOrg", "home", new { area = "" })',
+                    "type": "POST",
+                    "datatype": "json",
+                    "headers": {
+                        //"X-XSRF-TOKEN": $("#_xsrfToken").val()
+                    }
+                },
+
+                "columns": [
+                    { "data": "orgNumber", "name": "schoolClass" },
+                    { "data": "name", "name": "name" },
+                    { "data": "address1", "name": "address1" },
+                    { "data": "address2", "name": "address2" },
+                    { "data": "address3", "name": "address3" },
+                    { "data": "address4", "name": "address4" },
+                    { "data": "town", "name": "town" },
+                    { "data": "postCode", "name": "postCode" }
+                ]
+            });
+
+
+
+            
+
+            $(".dataTables_length").remove();
+            $(".dataTables_filter").remove();
+
+            function postFile(data, url) {
+                return jQuery.ajax({
+                    type: "POST",
+                    url: url,
+                    data: data,
+                    contentType: false,
+                    processData: false,
+                    cache: false
+                });
+            }
+
+            $(".uploadBtn").click(function(){
+                $("#excelfile").click();
+            })
+
+            $("#excelfile").change(function (e) {
+                $("#uploadmsg").html("loading")
+                $("#uploadmsg").removeClass("d-none")
+                var frmData = new FormData();
+
+                var postUrl = "@Url.Action("UploadEntries","Home",new{area=""})";
+
+                frmData.append('xcelFile', e.target.files[0]);
+
+                $.when(postFile(frmData, postUrl)).then(function (response) {
+
+                    if(response.hasError===false){
+                        window.location.reload();
+                    }
+
+                })
+            });
+
+        });
+
+
+    </script>
+}
